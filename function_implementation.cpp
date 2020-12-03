@@ -18,7 +18,7 @@ void drawheatmap(const Data *data, int num_points)
   float max_value = -999.9f;
   float min_value = 999.9f;
   for ( int i = 0; i < num_points; i++){
-    const Data d = data[i];
+    Data d = data[i]; //data is no longer const
     //clamp max / min value
     if (d.z > max_value){
       max_value = d.z;
@@ -35,7 +35,7 @@ void drawheatmap(const Data *data, int num_points)
 
   for(int i = 0; i<num_points; i++)
     {
-      const Data d = data[i];
+      Data d = data[i];
       float value = d.z;
       float b = 1.0f - value/halfmax; 
       float r = value/halfmax - 1.0f; 
@@ -65,7 +65,7 @@ void gaussian(float sigma)
   const float sigma2 = sigma*sigma;
 
   //amplitude
-  const float sigma_const = 10.0f*(sigma*2.0f*(float)M_PI);
+  const float sigma_const = 10.0f*(sigma2*2.0f*(float)M_PI);
 
   
   for ( int x = -grid_x /2.0f; x<grid_x/2.0f;x+=1.0f ){
@@ -88,25 +88,39 @@ void gaussian(float sigma)
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
+ 
+	
   const float fovY = 45.0f;
   const float front = 0.1f;
   const float back = 128.0f;
   float ratio = 1.0f;
-  if (height < 0){
-    ratio = (float)width / (float)height;
-  }
+
+  
+  ///========================================================================
+  //this chunk is for frustum camera projection, use the corner and front/back to construct the projection matrix
+  const double DEG2RAD = 3.14159265 / 180;
+  double tangent = tan(fovY/2 * DEG2RAD);   // tangent of half fovY
+  double height_f = front * tangent;          // half height of near plane
+  double width_f = height_f * ratio;      // half width of near plane
+  ///========================================================================
+
+  
+  if (height > 0)
+    ratio = (float)width/(float)height;
+  
 
     //set up the viewport of the virtual camera (using the window size)
-    glViewport(0,0,width,height);
+  glViewport(0,0,width,height);
 
     //specify the matrix mode as GL_PROJECTION and allow subsequent matrix operation to be applied to the projection matrix stack
-    glMatrixMode(GL_PROJECTION);
+  glMatrixMode(GL_PROJECTION);
 
     //load the identity matrix (reset the matrix to default state)
-    glLoadIdentity();
+  glLoadIdentity();
 
     //set up the perspective projection matrix for the virtual camera
-    gluPerspective(fovY, ratio, front, back);
+    //    gluPerspective(fovY, ratio, front, back);
+  glFrustum(-width_f, width_f, -height_f, height_f, front, back);
 
 }
 
@@ -132,6 +146,6 @@ void drawGnome(){
   glVertex3f(0.0f,0.0f,0.0f);
   glColor4f(1.0f,0.0f,1.0f,0.5f);
   glVertex3f(0.0f,0.3f,0.0f);
-
+  glEnd();
 
 }
