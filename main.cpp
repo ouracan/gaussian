@@ -33,8 +33,9 @@ int main(void)
   //and Set up viewport using the size of the window and clear color buffer
 
 
-  float sigma = 0.0f;
-  
+  float sigma = 0.1f;
+  float sign = 1.0f;
+  float step_size = 0.01f;
   while(!glfwWindowShouldClose(window))
     {
       float ratio;
@@ -56,9 +57,13 @@ int main(void)
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       
-      sigma+=0.01f;
-      if(sigma>1.0f)
-	sigma=0.01f;
+      sigma=sigma+sign*step_size;
+      if(sigma>1.0f){
+	sign = -1.0f;
+      }
+      if(sigma<0.1f){
+	sign=1.0f;
+      }
       gaussian(sigma);
    
 
