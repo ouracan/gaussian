@@ -2,10 +2,13 @@
 #include "header.h"
 
 
-const int WINDOWS_WIDTH = 640;
-const int WINDOWS_HEIGHT = 640;
+const int WINDOWS_WIDTH = 1920;
+const int WINDOWS_HEIGHT = 1080;
 
-
+GLfloat alpha =210.0f, beta=-70.0f,zoom=2.0f;
+float sigma = 0.1f;
+float sign = 1.0f;
+float step_size = 0.01f;
 
     
       
@@ -21,19 +24,28 @@ int main(void)
     exit(EXIT_FAILURE);
   }
   glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
   //Enable anti-aliasing and smoothing
 
   glEnable(GL_POINT_SMOOTH);
+  glEnable(GL_LINE_SMOOTH);
   glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);
+  glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
   glEnable(GL_BLEND);
+
+  //for alpha blending
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_ALPHA_TEST);
+
+
+  // initialize parameters for perspective rendering
 
   //Define loop which terminates when the window is closed.
   //and Set up viewport using the size of the window and clear color buffer
 
 
-  float sigma = 0.0f;
+
   
   while(!glfwWindowShouldClose(window))
     {
@@ -41,24 +53,36 @@ int main(void)
       
       int width, height;
       glfwGetFramebufferSize(window, &width, &height);
+      framebuffer_size_callback(window, width, height);
       ratio = (float)width / (float)height;
       glViewport(0,0,width,height);
       glClear(GL_COLOR_BUFFER_BIT);
 
-      //set up orthographic projection
+      //set up perspective rendering
 
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glClearColor(1.0f,1.0f,1.0f,1.0f);
 
-      glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+
       glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glTranslatef(0.0,0.0,-2.0);
+      glRotatef(beta,1.0,0.0,0.0);
+      glRotatef(alpha,0.0,0.0,1.0);
+
+      //draw the 3 axis at corner / center
+      drawGnome();
 
       
-      sigma+=0.01f;
-      if(sigma>1.0f)
-	sigma=0.01f;
+      sigma = sigma+sign*step_size;
+      if(sigma>1.0f){
+
+  
+	sign = -1.0f;
+      }
+      if(sigma<0.1f){
+	sign = 1.0f;
+      }
       gaussian(sigma);
    
 

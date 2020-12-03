@@ -30,7 +30,7 @@ void drawheatmap(const Data *data, int num_points)
   const float halfmax = (max_value+min_value)/2;
 
   //display result
-  glPointSize(2.0f);
+  glPointSize(3.0f);
   glBegin(GL_POINTS);
 
   for(int i = 0; i<num_points; i++)
@@ -46,27 +46,36 @@ void drawheatmap(const Data *data, int num_points)
 	r=0;
       }
       float g= 1.0f - b -r;
-      glColor4f(r,g,b,0.5f);
-      glVertex3f(d.x,d.y,0.0f); //inefficient
+      glColor4f(r,g,b,0.25f);
+      glVertex3f(d.x,d.y,d.z); //inefficient
     }
   glEnd();
 }
 
 void gaussian(float sigma)
 {
-  //construct a 1000 x 1000 grid
-  const int grid_x = 1000;
-  const int grid_y = 1000;
+
+  const int grid_x = 400;
+  const int grid_y = 400;
   const int num_points = grid_x * grid_y;
   Data *data = (Data*)malloc(sizeof(Data)*num_points);
   int data_counter = 0;
-  for ( int x = -grid_x /2; x<grid_x/2;x+=1 ){
-    for ( int y = -grid_y/2; y<grid_y/2; y+=1){
+
+  //standard deviation
+  const float sigma2 = sigma*sigma;
+
+  //amplitude
+  const float sigma_const = 10.0f*(sigma*2.0f*(float)M_PI);
+
+  
+  for ( int x = -grid_x /2.0f; x<grid_x/2.0f;x+=1.0f ){
+    for ( int y = -grid_y/2.0f; y<grid_y/2.0f; y+=1.0f){
       float x_data = 2.0f *  x/grid_x;
       float y_data = 2.0f * y/grid_y;
+      
 
-      //compute the height z based on a 2D gaussian function
-      float z_data = exp(-0.5f*(x_data*x_data)/(sigma*sigma) -0.5f*(y_data*y_data)/(sigma*sigma))/(sigma*sigma*2.0f*M_PI);
+      //set the mean to 0,compute the height z based on a 2D gaussian function
+      float z_data = exp(-0.5f*(x_data*x_data)/(sigma2) -0.5f*(y_data*y_data)/(sigma*sigma))/sigma_const;
       data[data_counter].x = x_data;
       data[data_counter].y = y_data;
       data[data_counter].z = z_data;
@@ -78,4 +87,51 @@ void gaussian(float sigma)
   free(data);
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height){
+  const float fovY = 45.0f;
+  const float front = 0.1f;
+  const float back = 128.0f;
+  float ratio = 1.0f;
+  if (height < 0){
+    ratio = (float)width / (float)height;
+  }
 
+    //set up the viewport of the virtual camera (using the window size)
+    glViewport(0,0,width,height);
+
+    //specify the matrix mode as GL_PROJECTION and allow subsequent matrix operation to be applied to the projection matrix stack
+    glMatrixMode(GL_PROJECTION);
+
+    //load the identity matrix (reset the matrix to default state)
+    glLoadIdentity();
+
+    //set up the perspective projection matrix for the virtual camera
+    gluPerspective(fovY, ratio, front, back);
+
+}
+
+void drawGnome(){
+  glLineWidth(4.0f);
+  glBegin(GL_LINES);
+
+
+  //draw a red line for the x-aixs
+  glColor4f(1.0f,0.0f,0.0f,0.5f);
+  glVertex3f(0.0f,0.0f,0.0f);
+  glColor4f(1.0f,0.0f,0.0f,0.5f);
+  glVertex3f(0.3f,0.0f,0.0f);
+
+    //draw a green line for the x-aixs
+  glColor4f(0.0f,1.0f,0.0f,0.5f);
+  glVertex3f(0.0f,0.0f,0.0f);
+  glColor4f(0.0f,1.0f,0.0f,0.5f);
+  glVertex3f(0.f,0.0f,0.3f);
+
+    //draw a bleu line for the x-aixs
+  glColor4f(0.0f,0.0f,1.0f,0.5f);
+  glVertex3f(0.0f,0.0f,0.0f);
+  glColor4f(1.0f,0.0f,1.0f,0.5f);
+  glVertex3f(0.0f,0.3f,0.0f);
+
+
+}
